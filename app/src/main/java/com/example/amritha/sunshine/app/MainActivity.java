@@ -1,7 +1,12 @@
 package com.example.amritha.sunshine.app;
 
-import android.support.v7.app.ActionBarActivity;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -31,9 +36,30 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
+            return true;
+        } else if (id == R.id.action_map) {
+            openLocation();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void openLocation() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        String locationPref = sharedPref.getString(getString(R.string.pref_location_key), getString(
+                R.string.pref_location_default
+        ));
+
+        Uri geoLocation = Uri.parse("geo:0,0?").buildUpon().appendQueryParameter("q",locationPref).build();
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(geoLocation);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        } else {
+            Log.d(MainActivity.class.getSimpleName(),"Couldn't call" + locationPref + ", no receiving" +
+                    "apps installed");
+        }
     }
 }

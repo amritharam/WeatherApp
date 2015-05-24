@@ -1,8 +1,11 @@
 package com.example.amritha.sunshine.app;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.text.format.Time;
 import android.util.Log;
@@ -12,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -54,11 +58,26 @@ public class ForecastFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            FetchWeatherTask weatherTask = new FetchWeatherTask();
-            weatherTask.execute("Chennai");
+            updateWeather();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
+    }
+
+    private void updateWeather() {
+        FetchWeatherTask weatherTask = new FetchWeatherTask();
+        //weatherTask.execute("Chennai");
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String locationPref = sharedPref.getString(getString(R.string.pref_location_key),getString(
+                R.string.pref_location_default
+        ));
+        weatherTask.execute(locationPref);
     }
 
     @Override
@@ -74,6 +93,15 @@ public class ForecastFragment extends Fragment {
         //data
         ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
         listView.setAdapter(forecastListAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        String forecast = forecastListAdapter.getItem(i);
+                        Intent detailIntent = new Intent(getActivity(), DetailActivity.class)
+                                .putExtra(Intent.EXTRA_TEXT,forecast);
+                        startActivity(detailIntent);
+            }
+        });
         return rootView;
     }
 
@@ -93,8 +121,14 @@ public class ForecastFragment extends Fragment {
         /**
          * Prepare the weather high/lows for presentation.
          */
-        private String formatHighLows(double high, double low) {
-            // For presentation, assume the user doesn't care about tenths of a degree.
+        private String formatHighLows(double high, double low, String unitPref) {
+            // For presentation, assume the user doesn't care about tenths of a degree
+
+            if (unitPref.equals(getString(R.string.pref_units_imperial))) {
+                //imperial
+                high = (high * 1.8) + 32;
+                low = (low * 1.8) + 32;
+            }
             long roundedHigh = Math.round(high);
             long roundedLow = Math.round(low);
 
@@ -151,6 +185,10 @@ public class ForecastFragment extends Fragment {
             dayTime = new Time();
 
             String[] resultStrs = new String[numDays];
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String unitPref = sharedPref.getString(getString(R.string.pref_units_key), getString(
+                    R.string.pref_units_metric
+            ));
             for (int i = 0; i < weatherArray.length(); i++) {
                 // For now, using the format "Day, description, hi/low"
                 String day;
@@ -177,8 +215,7 @@ public class ForecastFragment extends Fragment {
                 JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
                 double high = temperatureObject.getDouble(OWM_MAX);
                 double low = temperatureObject.getDouble(OWM_MIN);
-
-                highAndLow = formatHighLows(high, low);
+                highAndLow = formatHighLows(high, low, unitPref);
                 resultStrs[i] = day + " - " + description + " - " + highAndLow;
             }
 
