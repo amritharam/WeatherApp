@@ -17,8 +17,38 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Log.v(getClass().getSimpleName(),"onCreate");
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.v(getClass().getSimpleName(), "onStart");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.v(getClass().getSimpleName(), "onResume");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.v(getClass().getSimpleName(), "onPause");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.v(getClass().getSimpleName(), "onStop");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.v(getClass().getSimpleName(), "onDestroy");
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
