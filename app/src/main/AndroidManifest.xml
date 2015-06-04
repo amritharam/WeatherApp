@@ -28,6 +28,10 @@
             android:label="@string/title_activity_settings"
             android:parentActivityName="MainActivity" >
         </activity>
+
+        <provider
+            android:authorities="com.example.amritha.sunshine.app"
+            android:name=".data.WeatherProvider" />
     </application>
 
 </manifest>

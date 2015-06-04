@@ -1,10 +1,8 @@
 package com.example.amritha.sunshine.app;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -12,24 +10,36 @@ import android.view.MenuItem;
 
 
 public class MainActivity extends ActionBarActivity {
-
+    private final String FORECASTTAG = "FFTAG";
+    private String mLocation;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        mLocation = Utility.getPreferredLocation(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.v(getClass().getSimpleName(),"onCreate");
+        if(savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.fragment, new ForecastFragment(), FORECASTTAG)
+                    .commit();
+        }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        Log.v(getClass().getSimpleName(), "onStart");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.v(getClass().getSimpleName(), "onResume");
+        String location = Utility.getPreferredLocation(this);
+        if(location!=null && !location.equals(mLocation)) {
+            ForecastFragment ff = (ForecastFragment)getSupportFragmentManager().findFragmentByTag(FORECASTTAG);
+            if(ff!=null) {
+                ff.onLocationChanged();
+            }
+            mLocation = location;
+        }
     }
 
     @Override
@@ -77,10 +87,7 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void openLocation() {
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        String locationPref = sharedPref.getString(getString(R.string.pref_location_key), getString(
-                R.string.pref_location_default
-        ));
+        String locationPref = Utility.getPreferredLocation(this);
 
         Uri geoLocation = Uri.parse("geo:0,0?").buildUpon().appendQueryParameter("q",locationPref).build();
         Intent intent = new Intent(Intent.ACTION_VIEW);
